@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 include_directories(caches)
 include_directories(.)
 include_directories("./lib/LightGBM/include")
-include_directories("./lib")
+include_directories("./lib/alglib/")
+
 
 
 #add_definitions(-ffast-math)
@@ -26,7 +27,8 @@ set(SOURCES caches/lru_variants.cpp
             caches/optimal.h
             lib/misc/hash_combine.h
             caches/solve_mcf.cpp
-            caches/solve_mcf.h)
+            caches/solve_mcf.h
+        )
 
 add_executable(bin ${SOURCES})
 
