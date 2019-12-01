@@ -110,6 +110,7 @@ public:
             LFOFeature& feature = id2feature[req->getId()];
             update_timegaps(feature, req->getTimeStamp());
             feature.timestamp = req->getTimeStamp();
+            feature.available_cache_size = getFreeBytes();
         } else {
             LFOFeature feature(req->getId(), req->getSize(), req->getTimeStamp());
             feature.available_cache_size = getFreeBytes();

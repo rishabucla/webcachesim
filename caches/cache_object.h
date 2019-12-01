@@ -8,7 +8,7 @@ struct CacheObject
 {
     IdType id;
     uint64_t size;
-    uint64_t dvar;
+    double dvar;
 
     CacheObject(SimpleRequest* req)
         : id(req->getId()),

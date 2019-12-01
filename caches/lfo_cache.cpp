@@ -138,16 +138,18 @@ bool LFOCache::lookup(SimpleRequest* req) {
 void LFOCache::admit(SimpleRequest* req) {
     const uint64_t size = req->getSize();
     auto lfoFeature = get_lfo_feature(req);
-
-    if (run_lightgbm(lfoFeature.get_vector()) >= threshold) {
+    double dvar = run_lightgbm(lfoFeature.get_vector());
+    if (dvar >= threshold) {
         while (_currentSize + size > _cacheSize) {
             evict();
         }
+
+        CacheObject obj(req);
+        obj.dvar = dvar;
+        _cacheMap.insert({lfoFeature.id, obj});
+        _cacheObjectMinpq.push(obj);
+        _currentSize += size;
     }
-    CacheObject obj(req);
-    _cacheMap.insert({lfoFeature.id, obj});
-    _cacheObjectMinpq.push(obj);
-    _currentSize += size;
 
 };
 
