@@ -113,10 +113,14 @@ std::vector<double> getOptimalDecisions(std::vector<SimpleRequest> requests,
     }
 
     std::vector<double> opt_decisions;
+    uint64_t hits = 0;
 
     for(auto & it: opt_trace) {
        opt_decisions.push_back(it.dvar);
+       hits += it.hit;
     }
+
+    std::cout << "[+] The optimal number of hits are: " << hits << std::endl;
 
     return opt_decisions;
 }

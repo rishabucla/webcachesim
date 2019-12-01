@@ -40,7 +40,7 @@ protected:
     std::priority_queue<CacheObject, std::vector<CacheObject>, GreaterCacheObject> _cacheObjectMinpq;
 
 //    void update_timegaps(LFOFeature & feature, uint64_t new_time);
-    virtual void train_lightgbm(std::vector<std::vector<double>> features, std::vector<double> labels);
+    virtual void train_lightgbm(std::vector<std::vector<double>> & features, std::vector<double> & labels);
     double run_lightgbm(std::vector<double> feature);
 
 

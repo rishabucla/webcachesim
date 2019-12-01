@@ -9,6 +9,10 @@ using namespace std;
 
 double LFOCache::run_lightgbm(std::vector<double> feature) {
 
+    if (boosterHandle == nullptr) {
+        cout << "FUCK THIS UP." << endl;
+    }
+
     static int count = 0;
 
     if (count % 1000001 == 0) {
@@ -44,13 +48,18 @@ double LFOCache::run_lightgbm(std::vector<double> feature) {
     return predictions;
 }
 
-void LFOCache::train_lightgbm(std::vector<std::vector<double>> features, std::vector<double> opt_decisions) {
+void LFOCache::train_lightgbm(std::vector<std::vector<double>> & features, std::vector<double> & opt_decisions) {
+
+    int freedBooster = LGBM_BoosterFree(boosterHandle);
+
+    if (freedBooster == 0) {
+        cout << "[+] Freed Booster successfully" << std::endl;
+    } else {
+        cout << "[-] Freed Booster failed" << std::endl;
+    }
 
     int numSamples = features.size();
     int featureLength = features[0].size();
-
-    double* labels = new double[numSamples];
-//    double** featureVector = new double*[numSamples];
 
     const char* training_data_filename = "../training_data_file.data";
 
@@ -77,7 +86,9 @@ void LFOCache::train_lightgbm(std::vector<std::vector<double>> features, std::ve
     int isdataSetLoaded = 0;
 
     if (dataHandle == nullptr){
+        cout << "[+] Creating a dataset for LightGBM" << endl;
         isdataSetLoaded = LGBM_DatasetCreateFromFile(training_data_filename, "", nullptr, &dataHandle);
+        cout << "[+] Created a dataset for LightGBM" << endl;
     }
     if (isdataSetLoaded != 0) {
         std::cout << "Loading dataset failed\n";
@@ -95,47 +106,28 @@ void LFOCache::train_lightgbm(std::vector<std::vector<double>> features, std::ve
         if (isUpdated != 0) {
             std::cout << "Failed to update at iteration number " << i << "\n";
         }
-        if (isFinished == 0) {
+        if (isFinished == 1) {
             std::cout << "No further gain, cannot split anymore" << std::endl;
             break;
         }
     }
     dataHandle = nullptr;
+//    boosterHandle = nullptr;
+    int out_iteration = 0;
+    LGBM_BoosterSaveModel(boosterHandle, 0, -1, "../booster.data");
 
-    free(labels);
+    int freedData = LGBM_DatasetFree(dataHandle);
+
+    if (freedData == 0) {
+        cout << "[+] Freed Booster successfully" << std::endl;
+    } else {
+        cout << "[-] Freed Booster failed" << std::endl;
+    }
+
+    cout << "[+] The out iteration: " << out_iteration << std::endl;
     cout << "[+] Training of LightGBM completed" << std::endl;
 }
 
-
-//void LFOCache::update_timegaps(LFOFeature & feature, uint64_t new_time) {
-//
-//    uint64_t time_diff = new_time - feature.timestamp;
-//
-//    for (auto it = feature.timegaps.begin(); it != feature.timegaps.end(); it++) {
-//        *it = *it + time_diff;
-//    }
-//
-//    feature.timegaps.push_back(new_time);
-//
-//    if (feature.timegaps.size() > 50) {
-//        auto start = feature.timegaps.begin();
-//        feature.timegaps.erase(start);
-//    }
-//}
-
-//LFOFeature LFOCache::get_lfo_feature(SimpleRequest* req) {
-//    if (id2feature.find(req->getId()) != id2feature.end()) {
-//        LFOFeature& feature = id2feature[req->getId()];
-//        update_timegaps(feature, req->getTimeStamp());
-//        feature.timestamp = req->getTimeStamp();
-//    } else {
-//        LFOFeature feature(req->getId(), req->getSize(), req->getTimeStamp());
-//        feature.available_cache_size = getFreeBytes();
-//        id2feature[req->getId()] = feature;
-//    }
-//
-//    return id2feature[req->getId()];
-//}
 
 bool LFOCache::lookup(SimpleRequest* req) {
     auto it = _cacheMap.find(req->getId());

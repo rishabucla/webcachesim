@@ -119,7 +119,7 @@ public:
         return id2feature[req->getId()];
     }
 
-    virtual void train_lightgbm(std::vector<std::vector<double>> features, std::vector<double> labels) {}
+    virtual void train_lightgbm(std::vector<std::vector<double>> & features, std::vector<double> & labels) {}
 //    virtual double run_lightgbm(std::vector<double> feature);
     // _____________________________
 
