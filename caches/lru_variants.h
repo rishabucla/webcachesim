@@ -40,6 +40,7 @@ public:
     virtual void evict(SimpleRequest* req);
     virtual void evict();
     virtual SimpleRequest* evict_return();
+    virtual void train_lightgbm(std::vector<std::vector<double>> features, std::vector<double> labels) {}
 };
 
 static Factory<LRUCache> factoryLRU("LRU");
@@ -204,6 +205,7 @@ public:
     virtual void segment_admit(uint8_t idx, SimpleRequest* req);
     virtual void evict(SimpleRequest* req);
     virtual void evict();
+    void train_lightgbm(std::vector<std::vector<double>> features, std::vector<double> labels) {}
 };
 
 static Factory<S4LRUCache> factoryS4LRU("S4LRU");

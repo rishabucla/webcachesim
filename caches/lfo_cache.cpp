@@ -2,11 +2,19 @@
 // Created by Arnav Garg on 2019-11-28.
 //
 
+#include <fstream>
 #include "lfo_cache.h"
 
 using namespace std;
 
 double LFOCache::run_lightgbm(std::vector<double> feature) {
+
+    static int count = 0;
+
+    if (count % 1000001 == 0) {
+        cout << "[+] Running the LightGBM model (Will only display once!)" << endl;
+    }
+
     double* featureVector = new double[feature.size()];
     for (int i = 0; i < feature.size(); i++) {
         featureVector[i] = feature[i];
@@ -29,45 +37,52 @@ double LFOCache::run_lightgbm(std::vector<double> feature) {
         std::cout << "predictionsLength returned more than 1 value for input";
     }
 
+    if (count % 1000001 == 0) {
+        cout << "[+] LightGBM prediction complete (Will only display once!)" << endl;
+    }
+    count += 1;
     return predictions;
 }
 
 void LFOCache::train_lightgbm(std::vector<std::vector<double>> features, std::vector<double> opt_decisions) {
 
-    if (features.empty()) {
-        std::cout << "No features sent to train!" << std::endl;
-    }
-
     int numSamples = features.size();
     int featureLength = features[0].size();
 
-    double featureVector[numSamples][featureLength];
-    double labels[opt_decisions.size()];
+    double* labels = new double[numSamples];
+//    double** featureVector = new double*[numSamples];
 
+    const char* training_data_filename = "../training_data_file.data";
+
+
+    ofstream file;
+    file.open(training_data_filename);
+
+    file << fixed;
+
+    cout << "[+] Starting training of LightGBM" << std::endl;
     for (int i = 0; i < numSamples; i++) {
-        for (int j = 0; j < featureLength; j++) {
-            featureVector[i][j] = features[i][j];
+        file << opt_decisions[i] << " ";
+        for (int j = 0; j < features[0].size(); j++) {
+            file << j << ":" << features[i][j];
+            if (j != features[i].size()-1) {
+                file << " ";
+            }
         }
+        file << endl;
     }
 
-    for (int i = 0; i < features.size(); i++) {
-        labels[i] = opt_decisions[i];
-    }
-
+    file.close();
 
     int isdataSetLoaded = 0;
 
     if (dataHandle == nullptr){
-        isdataSetLoaded = LGBM_DatasetCreateFromMat(featureVector, C_API_DTYPE_FLOAT64, numSamples,
-                                                    featureLength, 1, "", nullptr, &dataHandle);
-    } else {
-        isdataSetLoaded = LGBM_BoosterResetTrainingData(dataHandle, featureVector);
+        isdataSetLoaded = LGBM_DatasetCreateFromFile(training_data_filename, "", nullptr, &dataHandle);
     }
     if (isdataSetLoaded != 0) {
         std::cout << "Loading dataset failed\n";
     }
 
-    LGBM_DatasetSetField(dataHandle, "label", labels, numSamples, C_API_DTYPE_FLOAT32);
     int isLearnerCreated = LGBM_BoosterCreate(dataHandle, "", &boosterHandle);
 
     if (isLearnerCreated != 0) {
@@ -86,6 +101,9 @@ void LFOCache::train_lightgbm(std::vector<std::vector<double>> features, std::ve
         }
     }
     dataHandle = nullptr;
+
+    free(labels);
+    cout << "[+] Training of LightGBM completed" << std::endl;
 }
 
 

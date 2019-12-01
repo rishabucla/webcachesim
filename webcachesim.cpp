@@ -28,11 +28,11 @@ uint64_t run_model(vector<SimpleRequest> & prev_requests,
         infile >> time >> id >> size;
 
         SimpleRequest req(id, size, time);
-        prev_requests.push_back(req);
+        prev_requests[counter] = req;
 
         vector<double> prev_feature = webcache->get_lfo_feature(&req).get_vector();
         if (!prev_feature.empty()) {
-            prev_features.push_back(prev_feature);
+            prev_features[counter] = prev_feature;
         }
 
         if (webcache->lookup(&req)) {
@@ -59,29 +59,35 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
     size_t batch_size = 1000000;
     bool changed_to_lfo = false;
 
-    vector<SimpleRequest> prev_requests;
-    vector<vector<double >> prev_features;
+    vector<SimpleRequest> prev_requests(batch_size);
+    vector<vector<double >> prev_features(batch_size);
 
+    size_t iterations = 0;
 
     infile.open(path);
     while (!infile.eof()) {
+
+
+        cout << "Iteration: " << iterations << std::endl;
         uint64_t hits = run_model(prev_requests, prev_features, webcache, infile, batch_size);
+        cout << "[+] Number of hits: " << hits << "\n";
 
-        cout << "Hit accuracy: " << static_cast<double>(hits)/batch_size << "\n";
-
-        if (!prev_features.empty() && !prev_requests.empty()
-            && prev_features.size() == prev_requests.size()){
+        if (prev_features.size() != 0 && prev_requests.size() != 0 && prev_features.size() == prev_requests.size()){
+            cout << "[+] Computing optimal decisions"<< std::endl;
             vector<double> optimal_decisions = getOptimalDecisions(prev_requests, webcache->getSize());
-            cout << "The number of optimal decisions: " << optimal_decisions.size() << endl;
 
             if (!changed_to_lfo) {
+                webcache = Cache::create_unique("LFO");
                 webcache->setSize(cache_size);
                 changed_to_lfo = !changed_to_lfo;
             }
+
             webcache->train_lightgbm(prev_features, optimal_decisions);
-            prev_features.clear();
-            prev_requests.clear();
+//            prev_features.clear();
+//            prev_requests.clear();
         }
+
+        iterations += 1;
     }
 }
 

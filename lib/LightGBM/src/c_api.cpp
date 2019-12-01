@@ -1634,7 +1634,7 @@ RowFunctionFromDenseMatric(const void* data, int num_row, int num_col, int data_
     if (is_row_major) {
       return [=] (int row_idx) {
         std::vector<double> ret(num_col);
-        auto tmp_ptr = data_ptr + static_cast<size_t>(num_col) * row_idx;
+        auto tmp_RowFunctionFromDenseMatric;
         for (int i = 0; i < num_col; ++i) {
           ret[i] = static_cast<double>(*(tmp_ptr + i));
         }

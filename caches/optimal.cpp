@@ -25,7 +25,7 @@ std::vector<double> getOptimalDecisions(std::vector<SimpleRequest> requests,
 
     // not sure what these do. The paper doesn't talk about this in the
     // algorithm
-    uint64_t maxEjectSize = totalReqc - totalUniqC;
+    uint64_t maxEjectSize = 5000;//totalReqc - totalUniqC;
     uint64_t solverPar = 4;
     //-------------
 

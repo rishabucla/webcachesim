@@ -30,7 +30,7 @@ class LFOCache : public Cache {
 
 private:
     BoosterHandle boosterHandle = nullptr;
-    int numIterations;
+    int numIterations = 30;
     DatasetHandle dataHandle = nullptr;
     double threshold = 0.5;
 
@@ -40,7 +40,7 @@ protected:
     std::priority_queue<CacheObject, std::vector<CacheObject>, GreaterCacheObject> _cacheObjectMinpq;
 
 //    void update_timegaps(LFOFeature & feature, uint64_t new_time);
-    void train_lightgbm(std::vector<std::vector<double>> features, std::vector<double> labels);
+    virtual void train_lightgbm(std::vector<std::vector<double>> features, std::vector<double> labels);
     double run_lightgbm(std::vector<double> feature);
 
 

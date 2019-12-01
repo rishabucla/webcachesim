@@ -15,10 +15,9 @@ include_directories("./lib")
 #add_definitions(-march=native)
 #add_definitions(-mcmodel=medium)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math -march=native -mcmodel=medium")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -march=native")
 
 set(SOURCES caches/lru_variants.cpp
-            caches/gd_variants.cpp
             random_helper.cpp
             webcachesim.cpp caches/lfo_cache.cpp
             caches/lfo_cache.h
