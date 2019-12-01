@@ -13,7 +13,8 @@ uint64_t run_model(vector<SimpleRequest> & prev_requests,
                vector<vector<double>> & prev_features,
                unique_ptr<Cache> & webcache,
                ifstream & infile,
-               size_t batch_size) {
+               size_t batch_size,
+               ofstream & outfile) {
 
     uint64_t time, id, size;
     uint64_t counter = 0;
@@ -37,8 +38,14 @@ uint64_t run_model(vector<SimpleRequest> & prev_requests,
 
         if (webcache->lookup(&req)) {
             hit++;
+            outfile << id << ' ' << size << ' ' << '1' << ' ' << '1' << std::endl;
         } else {
             webcache->admit(&req);
+            if (webcache->lookup(&req)) {
+                outfile << id << ' ' << size << ' ' << '1' << ' ' << '0' << std::endl;
+            } else {
+                outfile << id << ' ' << size << ' ' << '0' << ' ' << '0' << std::endl;
+            }
         }
         counter += 1;
     }
@@ -56,6 +63,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
     webcache->setSize(cache_size);
 
     ifstream infile;
+    std::ofstream outfile;
     size_t batch_size = 100000;
     bool changed_to_lfo = false;
 
@@ -65,11 +73,12 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
     size_t iterations = 0;
 
     infile.open(path);
+    outfile.open("../cache_decisions.out");
     while (!infile.eof()) {
 
 
         cout << "Iteration: " << iterations << std::endl;
-        uint64_t hits = run_model(prev_requests, prev_features, webcache, infile, batch_size);
+        uint64_t hits = run_model(prev_requests, prev_features, webcache, infile, batch_size, outfile);
         cout << "[+] Number of hits: " << hits << "\n";
 
         if (prev_features.size() != 0 && prev_requests.size() != 0 && prev_features.size() == prev_requests.size()){
