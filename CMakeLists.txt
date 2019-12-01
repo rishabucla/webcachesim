@@ -11,6 +11,7 @@ include_directories("./lib/LightGBM/include")
 include_directories("./lib")
 
 
+
 #add_definitions(-ffast-math)
 #add_definitions(-march=native)
 #add_definitions(-mcmodel=medium)
@@ -26,9 +27,12 @@ set(SOURCES caches/lru_variants.cpp
             caches/optimal.h
             lib/misc/hash_combine.h
             caches/solve_mcf.cpp
-            caches/solve_mcf.h)
+            caches/solve_mcf.h
+        )
 
-add_executable(bin ${SOURCES})
+file(GLOB ALGLIB lib/alglib/src/*.h lib/alglib/src/*.cpp)
+
+add_executable(bin ${ALGLIB} ${SOURCES})
 
 find_library(LIGHTGBM_LIB lib_lightgbm.dylib LightGBM)
 target_link_libraries(bin ${LIGHTGBM_LIB})

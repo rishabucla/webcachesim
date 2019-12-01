@@ -37,12 +37,64 @@ public:
 
 class Cache {
     std::unordered_map<IdType, LFOFeature> id2feature;
+    std::unordered_map<IdType, LFOFeature> id2RlFeature;
+    bool useRLCacheFeatures;
+    bool useExponentialTimeGap;
+
+    uint64_t requestsSoFar;
+
+    LFOFeature getRLFeature(SimpleRequest* r){
+        auto it = id2RlFeature.find(r->getId());
+
+        requestsSoFar+=1;
+
+        if(it != id2RlFeature.end()){
+            LFOFeature prevLFOFeature = it->second;
+
+            LFOFeature newLfoFeature(r->getId(), r->getSize(), r->getTimeStamp());
+            update_timegaps(newLfoFeature, r->getTimeStamp());
+            newLfoFeature.available_cache_size = getFreeBytes();
+            newLfoFeature.request_no = requestsSoFar;
+            newLfoFeature.ordinal_recency =  requestsSoFar - prevLFOFeature.request_no + 1;
+            newLfoFeature.temporal_recency = r->getTimeStamp() - prevLFOFeature.timestamp;
+            newLfoFeature.times_requested = 1+prevLFOFeature.times_requested;
+            newLfoFeature.frequency = newLfoFeature.times_requested / requestsSoFar;
+            newLfoFeature.calculateDeltaJ();
+            newLfoFeature.calculateRhoJ();
+            newLfoFeature.use_exponential_time_gap = useExponentialTimeGap;
+            newLfoFeature.use_rl_cache_features = useRLCacheFeatures;
+
+            id2RlFeature.insert({r->getId(), newLfoFeature});
+
+        }else{
+            std::vector<uint64_t> newTimeGapList;
+            LFOFeature lfoFeature(r->getId(), r->getSize(), r->getTimeStamp());
+            lfoFeature.request_no = requestsSoFar;
+            lfoFeature.available_cache_size = getFreeBytes();
+            lfoFeature.ordinal_recency = 0;//new request, ordinal recency is 0
+            lfoFeature.temporal_recency = 0;//new request, temporal recency is 0
+            lfoFeature.times_requested = 1;
+            lfoFeature.frequency = (1.0/requestsSoFar); //new request, fraction of requests so far
+            lfoFeature.calculateRhoJ();
+            lfoFeature.calculateDeltaJ();
+            lfoFeature.use_exponential_time_gap = useExponentialTimeGap;
+            lfoFeature.use_rl_cache_features = useRLCacheFeatures;
+
+            id2RlFeature.insert({r->getId(), lfoFeature});
+
+        }
+        return id2RlFeature[r->getId()];
+
+    }
 public:
     // create and destroy a cache
     Cache()
         : _cacheSize(0),
           _currentSize(0)
     {
+        requestsSoFar = 0;
+        useRLCacheFeatures = false;
+        useExponentialTimeGap = false;
     }
     virtual ~Cache(){};
 
@@ -72,6 +124,10 @@ public:
         return (_cacheSize - _currentSize);
     }
 
+    void reset(){
+        requestsSoFar = 0;
+    }
+
     // helper functions (factory pattern)
     static void registerType(std::string name, CacheFactory *factory) {
         get_factory_instance()[name] = factory;
@@ -99,13 +155,20 @@ public:
 
         feature.timegaps.push_back(new_time);
 
-        if (feature.timegaps.size() > 50) {
-            auto start = feature.timegaps.begin();
-            feature.timegaps.erase(start);
+        if(feature.use_exponential_time_gap){
+            if(feature.timegaps.size() > 2050){
+                feature.timegaps.erase(feature.timegaps.begin());
+            }
+        }else{
+            if(feature.timegaps.size() > 50){
+                feature.timegaps.erase(feature.timegaps.begin());
+            }
         }
     }
 
     LFOFeature get_lfo_feature(SimpleRequest* req) {
+        if(useRLCacheFeatures) return getRLFeature(req);
+
         if (id2feature.find(req->getId()) != id2feature.end()) {
             LFOFeature& feature = id2feature[req->getId()];
             update_timegaps(feature, req->getTimeStamp());
@@ -113,6 +176,8 @@ public:
             feature.available_cache_size = getFreeBytes();
         } else {
             LFOFeature feature(req->getId(), req->getSize(), req->getTimeStamp());
+            feature.use_exponential_time_gap = useExponentialTimeGap;
+            feature.use_rl_cache_features = useRLCacheFeatures;
             feature.available_cache_size = getFreeBytes();
             id2feature[req->getId()] = feature;
         }

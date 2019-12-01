@@ -63,7 +63,9 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
     webcache->setSize(cache_size);
 
     ifstream infile;
+
     std::ofstream outfile;
+
     size_t batch_size = 100000;
     bool changed_to_lfo = false;
 
