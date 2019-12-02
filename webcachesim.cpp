@@ -83,7 +83,9 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
 
 
         cout << "Iteration: " << iterations << std::endl;
+        webcache->reset();
         uint64_t hits = run_model(prev_requests, prev_features, webcache, infile, batch_size, outfile);
+
         cout << "[+] Number of hits: " << hits << "\n";
 
         if (prev_features.size() != 0 && prev_requests.size() != 0 && prev_features.size() == prev_requests.size()){
