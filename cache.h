@@ -50,29 +50,33 @@ class Cache {
 
         if(it != id2RlFeature.end()){
             LFOFeature prevLFOFeature = it->second;
+            update_timegaps(prevLFOFeature, r->getTimeStamp());
+            prevLFOFeature.available_cache_size = getFreeBytes();
 
-            LFOFeature newLfoFeature(r->getId(), r->getSize(), r->getTimeStamp());
-            update_timegaps(newLfoFeature, r->getTimeStamp());
-            newLfoFeature.available_cache_size = getFreeBytes();
-            newLfoFeature.request_no = requestsSoFar;
-            newLfoFeature.ordinal_recency =  requestsSoFar - prevLFOFeature.request_no + 1;
-            newLfoFeature.temporal_recency = r->getTimeStamp() - prevLFOFeature.timestamp;
-            newLfoFeature.times_requested = 1+prevLFOFeature.times_requested;
-            newLfoFeature.frequency = newLfoFeature.times_requested / requestsSoFar;
-            newLfoFeature.calculateDeltaJ();
-            newLfoFeature.calculateRhoJ();
-            newLfoFeature.use_exponential_time_gap = useExponentialTimeGap;
-            newLfoFeature.use_rl_cache_features = useRLCacheFeatures;
+            prevLFOFeature.ordinal_recency =  requestsSoFar - prevLFOFeature.request_no + 1;
+            prevLFOFeature.request_no = requestsSoFar;
 
-            id2RlFeature.insert({r->getId(), newLfoFeature});
+            prevLFOFeature.temporal_recency = r->getTimeStamp() - prevLFOFeature.timestamp;
+            prevLFOFeature.timestamp = r->getTimeStamp();
 
+            prevLFOFeature.temporal_recency_list.push_back(prevLFOFeature.temporal_recency);
+            prevLFOFeature.ordinal_recency_list.push_back(prevLFOFeature.ordinal_recency);
+            prevLFOFeature.times_requested+=1;
+
+            prevLFOFeature.frequency = prevLFOFeature.times_requested / requestsSoFar;
+            prevLFOFeature.calculateRhoJ();
+            prevLFOFeature.calculateDeltaJ();
+            prevLFOFeature.use_exponential_time_gap = useExponentialTimeGap;
+            prevLFOFeature.use_rl_cache_features = useRLCacheFeatures;
         }else{
             std::vector<uint64_t> newTimeGapList;
             LFOFeature lfoFeature(r->getId(), r->getSize(), r->getTimeStamp());
             lfoFeature.request_no = requestsSoFar;
             lfoFeature.available_cache_size = getFreeBytes();
             lfoFeature.ordinal_recency = 0;//new request, ordinal recency is 0
+            lfoFeature.ordinal_recency_list.push_back(lfoFeature.ordinal_recency);
             lfoFeature.temporal_recency = 0;//new request, temporal recency is 0
+            lfoFeature.temporal_recency_list.push_back(lfoFeature.temporal_recency);
             lfoFeature.times_requested = 1;
             lfoFeature.frequency = (1.0/requestsSoFar); //new request, fraction of requests so far
             lfoFeature.calculateRhoJ();
@@ -81,7 +85,6 @@ class Cache {
             lfoFeature.use_rl_cache_features = useRLCacheFeatures;
 
             id2RlFeature.insert({r->getId(), lfoFeature});
-
         }
         return id2RlFeature[r->getId()];
 
@@ -111,6 +114,17 @@ public:
             evict();
         }
     }
+
+    virtual void setUseRLCacheFeatures(bool useRLCache){
+        useRLCacheFeatures = useRLCache;
+        if(useRLCache) std::cout << "[+] Using RL Cache features" << std::endl;
+    }
+
+    virtual void setUseExponentialTimeGap(bool expTimeGap){
+        useExponentialTimeGap = expTimeGap;
+        if(expTimeGap) std::cout << "[+] Using Exponential Time Gap" << std::endl;
+    }
+
     virtual void setPar(std::string parName, std::string parValue) {}
 
     uint64_t getCurrentSize() const {
@@ -145,6 +159,7 @@ public:
     // Here is where I am keeping all the functions that are needed by the
     // LFO Cache. I don't really care right now. Maybe think of a better way to handle this later.
     // ___________________________
+
 
     void update_timegaps(LFOFeature & feature, uint64_t new_time) {
         uint64_t time_diff = new_time - feature.timestamp;

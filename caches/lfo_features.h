@@ -105,14 +105,24 @@ struct LFOFeature {
         alglib::real_1d_array x;// = str;
         x.setcontent(temporal_recency_list.size(), &(temporal_recency_list[0]));
         filterema(x, ALPHA);
-        rho_j = x[temporal_recency_list.size() - 1];
+        if(temporal_recency_list.size() > 0){
+            rho_j = x[temporal_recency_list.size() - 1];
+//            if(temporal_recency_list.size() > 1){
+//                std::cout << "here" << std::endl;
+//            }
+        }
+        else rho_j = 0;
+
     }
 
     void calculateDeltaJ(){
         alglib::real_1d_array x;// = str;
         x.setcontent(ordinal_recency_list.size(), &(ordinal_recency_list[0]));
         filterema(x, ALPHA);
-        delta_j = x[ordinal_recency_list.size() - 1];
+        if(ordinal_recency_list.size() > 0) {
+            delta_j = x[ordinal_recency_list.size() -1 ];
+        }
+        else delta_j = 0;
     }
 };
 

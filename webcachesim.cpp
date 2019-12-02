@@ -54,13 +54,16 @@ uint64_t run_model(vector<SimpleRequest> & prev_requests,
 
 }
 
-void run_simulation(const string path, const string cacheType, const uint64_t cache_size) {
+void run_simulation(const string path, const string cacheType, const uint64_t cache_size,
+        bool use_exponential_time_gap, bool use_rl_cache) {
     unique_ptr<Cache> webcache = Cache::create_unique(cacheType);
     if(webcache == nullptr)
         exit(0);
 
     // configure cache size
     webcache->setSize(cache_size);
+    webcache->setUseExponentialTimeGap(use_exponential_time_gap);
+    webcache->setUseRLCacheFeatures(use_rl_cache);
 
     ifstream infile;
 
@@ -90,6 +93,8 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
             if (!changed_to_lfo) {
                 webcache = Cache::create_unique("LFO");
                 webcache->setSize(cache_size);
+                webcache->setUseExponentialTimeGap(use_exponential_time_gap);
+                webcache->setUseRLCacheFeatures(use_rl_cache);
                 changed_to_lfo = !changed_to_lfo;
             }
 
@@ -115,9 +120,13 @@ int main (int argc, char* argv[])
     const string cacheType = argv[2];
     const uint64_t cache_size  = std::stoull(argv[3]);
 
+    bool use_exponential_time_gap = false, use_rl_cache = false;
+    if(argc == 6){
+        use_exponential_time_gap = std::stoull(argv[4]);
+        use_rl_cache = std::stoull(argv[5]);
+    }
 
-
-    run_simulation(path, cacheType, cache_size);
+    run_simulation(path, cacheType, cache_size, use_exponential_time_gap, use_rl_cache);
 
 
     return 0;
