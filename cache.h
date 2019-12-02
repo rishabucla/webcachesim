@@ -201,6 +201,10 @@ public:
         return id2feature[req->getId()];
     }
 
+    void clear_features() {
+        id2feature.clear();
+    }
+
     virtual void train_lightgbm(std::vector<std::vector<double>> & features, std::vector<double> & labels) {}
 //    virtual double run_lightgbm(std::vector<double> feature);
     // _____________________________
