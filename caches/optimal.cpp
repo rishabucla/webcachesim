@@ -179,6 +179,7 @@ uint64_t createMCF(SmartDigraph & g, std::vector<trEntry > & trace, uint64_t cac
             const SmartDigraph::Node lastReq = g.nodeFromId(lastSeen[std::make_pair(curEntry.id,curEntry.size)].second);
             curArc = g.addArc(lastReq,curNode);
             cap[curArc] = curEntry.size;
+            // this 1 is the cost and the size is the normalizing factor.
             cost[curArc] = 1/static_cast <double>(curEntry.size);
             supplies[lastReq] += curEntry.size;
             supplies[curNode] -= curEntry.size;

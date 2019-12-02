@@ -203,6 +203,7 @@ public:
 
     void clear_features() {
         id2feature.clear();
+        id2RlFeature.clear();
     }
 
     virtual void train_lightgbm(std::vector<std::vector<double>> & features, std::vector<double> & labels) {}
