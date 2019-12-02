@@ -18,5 +18,5 @@ Rishab Doshi
 
 Plain LFO + Exp Time gap
 ```
-/cdn1_500m_sigmetrics18.tr LRU 4000000000 1 0 > rl_cache_exp_time_gap.log
+/cdn1_500m_sigmetrics18.tr LRU 4000000000 1 0 > exp_time_gap.log
 ```
