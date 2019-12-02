@@ -99,7 +99,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
                 changed_to_lfo = !changed_to_lfo;
             }
 
-            if (iterations % 15 == 0) {
+            if (iterations % 10 == 0) {
                 cout << "[+] Computing optimal decisions"<< std::endl;
                 vector<double> optimal_decisions = getOptimalDecisions(prev_requests, webcache->getSize());
                 cout << "[+] Calling Train Light GBM at iteration " << iterations << endl;
