@@ -168,7 +168,7 @@ public:
             *it = *it + time_diff;
         }
 
-        feature.timegaps.push_back(new_time);
+        feature.timegaps.push_back(time_diff);
 
         if(feature.use_exponential_time_gap){
             if(feature.timegaps.size() > 2050){

@@ -30,9 +30,9 @@ class LFOCache : public Cache {
 
 private:
     BoosterHandle boosterHandle = nullptr;
-    int numIterations = 30;
+    int numIterations = 100;
     DatasetHandle dataHandle = nullptr;
-    double threshold = 0.5;
+    double threshold = 0.4;
 
 protected:
     std::list<CacheObject> _cacheList;

@@ -94,7 +94,9 @@ void LFOCache::train_lightgbm(std::vector<std::vector<double>> & features, std::
         std::cout << "Loading dataset failed\n";
     }
 
-    int isLearnerCreated = LGBM_BoosterCreate(dataHandle, "", &boosterHandle);
+    const char* parameters = "num_iterations=100 num_threads=4";
+
+    int isLearnerCreated = LGBM_BoosterCreate(dataHandle, parameters, &boosterHandle);
 
     if (isLearnerCreated != 0) {
         std::cout << "Creating learner failed\n";
@@ -112,19 +114,15 @@ void LFOCache::train_lightgbm(std::vector<std::vector<double>> & features, std::
         }
     }
     dataHandle = nullptr;
-//    boosterHandle = nullptr;
-    int out_iteration = 0;
     LGBM_BoosterSaveModel(boosterHandle, 0, -1, "../booster.data");
 
     int freedData = LGBM_DatasetFree(dataHandle);
 
     if (freedData == 0) {
-        cout << "[+] Freed Booster successfully" << std::endl;
+        cout << "[+] Free DataHandle successfully" << std::endl;
     } else {
-        cout << "[-] Freed Booster failed" << std::endl;
+        cout << "[-] Free DataHandle failed" << std::endl;
     }
-
-    cout << "[+] The out iteration: " << out_iteration << std::endl;
     cout << "[+] Training of LightGBM completed" << std::endl;
 }
 
