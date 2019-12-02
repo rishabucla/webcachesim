@@ -13,12 +13,6 @@ double LFOCache::run_lightgbm(std::vector<double> feature) {
         cout << "FUCK THIS UP." << endl;
     }
 
-    static int count = 0;
-
-    if (count % 1000001 == 0) {
-        cout << "[+] Running the LightGBM model (Will only display once!)" << endl;
-    }
-
     double* featureVector = new double[feature.size()];
     for (int i = 0; i < feature.size(); i++) {
         featureVector[i] = feature[i];
@@ -41,10 +35,6 @@ double LFOCache::run_lightgbm(std::vector<double> feature) {
         std::cout << "predictionsLength returned more than 1 value for input";
     }
 
-    if (count % 1000001 == 0) {
-        cout << "[+] LightGBM prediction complete (Will only display once!)" << endl;
-    }
-    count += 1;
     return predictions;
 }
 
@@ -94,7 +84,7 @@ void LFOCache::train_lightgbm(std::vector<std::vector<double>> & features, std::
         std::cout << "Loading dataset failed\n";
     }
 
-    const char* parameters = "num_iterations=100 num_threads=4";
+    const char* parameters = "num_iterations=30 num_threads=4";
 
     int isLearnerCreated = LGBM_BoosterCreate(dataHandle, parameters, &boosterHandle);
 
