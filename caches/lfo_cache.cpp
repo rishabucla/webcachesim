@@ -51,6 +51,7 @@ double LFOCache::run_lightgbm(std::vector<double> feature) {
 void LFOCache::train_lightgbm(std::vector<std::vector<double>> & features, std::vector<double> & opt_decisions) {
 
     int freedBooster = LGBM_BoosterFree(boosterHandle);
+    static int counter = 0;
 
     if (freedBooster == 0) {
         cout << "[+] Freed Booster successfully" << std::endl;
@@ -114,7 +115,8 @@ void LFOCache::train_lightgbm(std::vector<std::vector<double>> & features, std::
         }
     }
     dataHandle = nullptr;
-    LGBM_BoosterSaveModel(boosterHandle, 0, -1, "../booster.data");
+    string filepath = "../booster_data/booster_" + to_string(counter++) + ".data";
+    LGBM_BoosterSaveModel(boosterHandle, 0, -1, filepath.data());
 
     int freedData = LGBM_DatasetFree(dataHandle);
 
