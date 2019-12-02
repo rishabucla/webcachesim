@@ -69,7 +69,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
 
     std::ofstream outfile;
 
-    size_t batch_size = 100000;
+    size_t batch_size = 1000000;
     bool changed_to_lfo = false;
 
     vector<SimpleRequest> prev_requests(batch_size);
@@ -87,8 +87,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
         cout << "[+] Number of hits: " << hits << "\n";
 
         if (prev_features.size() != 0 && prev_requests.size() != 0 && prev_features.size() == prev_requests.size()){
-            cout << "[+] Computing optimal decisions"<< std::endl;
-            vector<double> optimal_decisions = getOptimalDecisions(prev_requests, webcache->getSize());
+
 
             if (!changed_to_lfo) {
                 webcache = Cache::create_unique("LFO");
@@ -98,7 +97,12 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
                 changed_to_lfo = !changed_to_lfo;
             }
 
-            webcache->train_lightgbm(prev_features, optimal_decisions);
+            if (iterations % 15 == 0) {
+                cout << "[+] Computing optimal decisions"<< std::endl;
+                vector<double> optimal_decisions = getOptimalDecisions(prev_requests, webcache->getSize());
+                cout << "[+] Calling Train Light GBM at iteration " << iterations << endl;
+                webcache->train_lightgbm(prev_features, optimal_decisions);
+            }
 //            prev_features.clear();
 //            prev_requests.clear();
         }
