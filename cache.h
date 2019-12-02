@@ -97,7 +97,7 @@ public:
             *it = *it + time_diff;
         }
 
-        feature.timegaps.push_back(new_time);
+        feature.timegaps.push_back(time_diff);
 
         if (feature.timegaps.size() > 50) {
             auto start = feature.timegaps.begin();

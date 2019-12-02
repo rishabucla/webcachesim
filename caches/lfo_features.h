@@ -37,7 +37,7 @@ struct LFOFeature {
     std::vector<double> get_vector() {
         std::vector<double> features;
         features.push_back(size);
-        features.push_back((optimizationGoal == BYTE_HIT_RATIO)? 1 : size);
+        // features.push_back((optimizationGoal == BYTE_HIT_RATIO)? 1 : size);
         features.push_back(available_cache_size);
 
         for (int i = timegaps.size();  i < 50; i++) {
