@@ -107,6 +107,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
 //            prev_requests.clear();
         }
 
+        webcache->clear_features();
         iterations += 1;
     }
 }
