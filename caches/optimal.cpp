@@ -16,6 +16,21 @@
 
 //using namespace lemon;
 
+
+std::vector<double> getOptimalDecisionsFromFile(std::string filepath, int batch_size, std::ifstream & infile) {
+    std::vector<double> dvar_values;
+    int counter = 0;
+
+    while (counter < batch_size) {
+        double value = 0;
+        infile >> value;
+        dvar_values.push_back(value);
+        counter += 1;
+    }
+    return dvar_values;
+}
+
+
 std::vector<double> getOptimalDecisions(std::vector<SimpleRequest> requests,
                                         uint64_t cacheSize) {
 

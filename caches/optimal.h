@@ -46,6 +46,7 @@ inline bool isInEjectSet(const double minUtil, const double maxUtil, const trEnt
 uint64_t createMCF(SmartDigraph & g, std::vector<trEntry > & trace, uint64_t cacheSize, SmartDigraph::ArcMap<int64_t> & cap, SmartDigraph::ArcMap<double> & cost, SmartDigraph::NodeMap<int64_t> & supplies, const double minUtil, const double maxUtil);
 
 std::vector<double> getOptimalDecisions(std::vector<SimpleRequest> requests, uint64_t cacheSize);
+std::vector<double> getOptimalDecisionsFromFile(std::string filepath, int batch_size, std::ifstream & infile);
 
 #endif
 
