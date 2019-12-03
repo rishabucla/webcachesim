@@ -94,6 +94,10 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
 
         cout << "[+] Number of hits: " << hits << "\n";
 
+        if (iterations == 49) {
+            return;
+        }
+
         if (prev_features.size() != 0 && prev_requests.size() != 0 && prev_features.size() == prev_requests.size()){
 
 
