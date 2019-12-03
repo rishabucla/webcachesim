@@ -74,7 +74,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
     bool changed_to_lfo = false;
 
     bool read_file_optimal = true;
-    string od_filepath = "../optimal.decisions";
+    string od_filepath = "../opt.decisions";
     ifstream opt_infile;
 
     vector<SimpleRequest> prev_requests(batch_size);
@@ -84,6 +84,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
 
     infile.open(path);
     outfile.open("../cache_decisions.out");
+    opt_infile.open(od_filepath);
     while (!infile.eof()) {
 
 
@@ -108,7 +109,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
                 cout << "[+] Computing optimal decisions"<< std::endl;
                 vector<double> optimal_decisions;
                 if (read_file_optimal) {
-                    optimal_decisions = getOptimalDecisionsFromFile(od_filepath, batch_size, opt_infile);
+                    optimal_decisions = getOptimalDecisionsFromFile(batch_size, opt_infile);
                 } else {
                     optimal_decisions = getOptimalDecisions(prev_requests, webcache->getSize());
                 }

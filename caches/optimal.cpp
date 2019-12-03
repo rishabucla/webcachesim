@@ -17,7 +17,7 @@
 //using namespace lemon;
 
 
-std::vector<double> getOptimalDecisionsFromFile(std::string filepath, int batch_size, std::ifstream & infile) {
+std::vector<double> getOptimalDecisionsFromFile(int batch_size, std::ifstream & infile) {
     std::vector<double> dvar_values;
     int counter = 0;
 
