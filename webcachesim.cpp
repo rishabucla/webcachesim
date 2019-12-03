@@ -40,6 +40,7 @@ uint64_t run_model(vector<SimpleRequest> & prev_requests,
             hit++;
             outfile << id << ' ' << size << ' ' << '1' << ' ' << '1' << std::endl;
         } else {
+            req.setFeatureVector(prev_feature);
             webcache->admit(&req);
             if (webcache->lookup(&req)) {
                 outfile << id << ' ' << size << ' ' << '1' << ' ' << '0' << std::endl;

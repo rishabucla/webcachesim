@@ -171,7 +171,7 @@ public:
         feature.timegaps.push_back(time_diff);
 
         if(feature.use_exponential_time_gap){
-            if(feature.timegaps.size() > 2050){
+            if(feature.timegaps.size() > 65){
                 feature.timegaps.erase(feature.timegaps.begin());
             }
         }else{
