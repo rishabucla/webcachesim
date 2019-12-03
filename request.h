@@ -13,6 +13,7 @@ private:
     IdType _id; // request object id
     uint64_t _size; // request size in bytes
     uint64_t _timestamp; // request timestamp
+    std::vector<double> _featureVector;//feature vector
 
 public:
     SimpleRequest()
@@ -68,6 +69,14 @@ public:
     uint64_t getTimeStamp() const
     {
         return _timestamp;
+    }
+
+    const std::vector<double> &getFeatureVector() const {
+        return _featureVector;
+    }
+
+    void setFeatureVector(const std::vector<double> &featureVector) {
+        _featureVector = featureVector;
     }
 };
 
