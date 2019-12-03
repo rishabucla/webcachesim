@@ -78,7 +78,7 @@ struct LFOFeature {
 
         if(use_exponential_time_gap){
             std::vector<uint64_t> tmpTimeGaps;
-            for(int i=1; i < 2050 && i < timegaps.size(); i*=2){
+            for(int i=1; i < 65 && i < timegaps.size(); i*=2){
                 tmpTimeGaps.push_back(timegaps.at(i-1));
             }
 
