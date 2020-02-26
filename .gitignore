@@ -5,6 +5,9 @@
 *.obj
 *.d
 
+.idea/
+cmake-build-debug/
+
 # Precompiled Headers
 *.gch
 *.pch
