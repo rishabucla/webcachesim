@@ -129,27 +129,70 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
     }
 }
 
+void writeOptDecisions(const char* path, uint64_t batch_size, uint64_t cache_size, int metric){
+    char fileName[100];
+    sprintf (fileName, "../opt_decisions_%d_%d_%ld", metric, batch_size, cache_size);
+    std::ofstream outfile;
+    outfile.open(fileName);
+
+    std::ifstream infile;
+    infile.open(path);
+
+    uint64_t time, id, size;
+    uint64_t counter = 0;
+    vector<SimpleRequest> requests(batch_size);
+
+    while (!infile.eof()) {
+
+        while(counter <= batch_size && !infile.eof()){
+            infile >> time >> id >> size;
+            SimpleRequest req(id, size, time);
+            requests[counter] = req;
+            counter += 1;
+        }
+
+        //write optimal decisions
+        vector<double> dvars = getOptimalDecisions(requests, cache_size);
+        for (vector<double>::iterator it = dvars.begin() ; it != dvars.end(); ++it)
+            outfile << *it << std::endl;
+
+        counter = 0;
+    }
+}
+
 int main (int argc, char* argv[])
 {
+    if(argc == 7){
+        //"webcachesim optgen traceFile cacheSizeBytes batchSize metric"
+        const char* path = argv[3];
+        const uint64_t cache_size  = std::stoull(argv[4]);
+        const uint64_t batch_size  = std::stoull(argv[5]);
+        const int metric = std::stoull(argv[6]); //1 => BHR, 2 => OHR
 
-    // output help if insufficient params
-    if(argc < 4) {
-        cerr << "webcachesim traceFile cacheType cacheSizeBytes" << endl;
-        return 1;
+        writeOptDecisions(path, batch_size, cache_size, metric);
+
+    }else{
+        // output help if insufficient params
+        if(argc < 4) {
+            cerr << "webcachesim traceFile cacheType cacheSizeBytes" << endl;
+            return 1;
+        }
+
+        const char* path = argv[1];
+        const string cacheType = argv[2];
+        const uint64_t cache_size  = std::stoull(argv[3]);
+
+        bool use_exponential_time_gap = false, use_rl_cache = false;
+        if(argc == 6){
+            use_exponential_time_gap = std::stoull(argv[4]);
+            use_rl_cache = std::stoull(argv[5]);
+        }
+
+        run_simulation(path, cacheType, cache_size, use_exponential_time_gap, use_rl_cache);
+
+
+        return 0;
     }
 
-    const char* path = argv[1];
-    const string cacheType = argv[2];
-    const uint64_t cache_size  = std::stoull(argv[3]);
 
-    bool use_exponential_time_gap = false, use_rl_cache = false;
-    if(argc == 6){
-        use_exponential_time_gap = std::stoull(argv[4]);
-        use_rl_cache = std::stoull(argv[5]);
-    }
-
-    run_simulation(path, cacheType, cache_size, use_exponential_time_gap, use_rl_cache);
-
-
-    return 0;
 }
