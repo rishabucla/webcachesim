@@ -56,7 +56,7 @@ uint64_t run_model(vector<SimpleRequest> & prev_requests,
 }
 
 void run_simulation(const string path, const string cacheType, const uint64_t cache_size,
-        bool use_exponential_time_gap, bool use_rl_cache) {
+        bool use_exponential_time_gap, bool use_rl_cache, ml_model model) {
     unique_ptr<Cache> webcache = Cache::create_unique(cacheType);
     if(webcache == nullptr)
         exit(0);
@@ -65,6 +65,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
     webcache->setSize(cache_size);
     webcache->setUseExponentialTimeGap(use_exponential_time_gap);
     webcache->setUseRLCacheFeatures(use_rl_cache);
+    webcache->setMLModel(model);
 
     ifstream infile;
 
@@ -118,7 +119,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
                     optimal_decisions = getOptimalDecisions(prev_requests, webcache->getSize());
                 }
                 cout << "[+] Calling Train Light GBM at iteration " << iterations << endl;
-                webcache->train_lightgbm(prev_features, optimal_decisions);
+                webcache->train_model(prev_features, optimal_decisions);
             }
 //            prev_features.clear();
 //            prev_requests.clear();
@@ -160,21 +161,32 @@ void writeOptDecisions(const char* path, uint64_t batch_size, uint64_t cache_siz
     }
 }
 
+ml_model getModel(int val){
+    switch (val){
+        case 1: return LIGHT_GBM;
+        case 2: return RVM;
+        case 3: return SVM;
+    }
+    //default
+    return LIGHT_GBM;
+}
+
+
 int main (int argc, char* argv[])
 {
-    if(argc == 7){
-        //"webcachesim optgen traceFile cacheSizeBytes batchSize metric"
-        const char* path = argv[3];
-        const uint64_t cache_size  = std::stoull(argv[4]);
-        const uint64_t batch_size  = std::stoull(argv[5]);
-        const int metric = std::stoull(argv[6]); //1 => BHR, 2 => OHR
+    if(strcmp(argv[1], "optgen") == 0){
+        //"bin optgen traceFile cacheSizeBytes batchSize metric"
+        const char* path = argv[2];
+        const uint64_t cache_size  = std::stoull(argv[3]);
+        const uint64_t batch_size  = std::stoull(argv[4]);
+        const int metric = std::stoull(argv[5]); //1 => BHR, 2 => OHR
 
         writeOptDecisions(path, batch_size, cache_size, metric);
 
     }else{
         // output help if insufficient params
         if(argc < 4) {
-            cerr << "webcachesim traceFile cacheType cacheSizeBytes" << endl;
+            cerr << "webcachesim traceFile cacheType cacheSizeBytes [use_exp_timegap] [use_rl_cache] [ml_model]" << endl;
             return 1;
         }
 
@@ -183,16 +195,21 @@ int main (int argc, char* argv[])
         const uint64_t cache_size  = std::stoull(argv[3]);
 
         bool use_exponential_time_gap = false, use_rl_cache = false;
+        ml_model model = LIGHT_GBM;
+
         if(argc == 6){
             use_exponential_time_gap = std::stoull(argv[4]);
             use_rl_cache = std::stoull(argv[5]);
+        }else if(argc == 7){
+            use_exponential_time_gap = std::stoull(argv[4]);
+            use_rl_cache = std::stoull(argv[5]);
+            model = getModel(std::stoull(argv[6]));
         }
 
-        run_simulation(path, cacheType, cache_size, use_exponential_time_gap, use_rl_cache);
-
+        run_simulation(path, cacheType, cache_size, use_exponential_time_gap, use_rl_cache, model);
 
         return 0;
     }
 
-
 }
+

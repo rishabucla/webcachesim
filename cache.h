@@ -35,13 +35,24 @@ public:
     virtual std::unique_ptr<Cache> create_unique() = 0;
 };
 
+enum ml_model {LIGHT_GBM, RVM, SVM};
+static const char * EnumStrings[] = { "LIGHT_GBM", "RVM", "SVM" };
+
+
 class Cache {
     std::unordered_map<IdType, LFOFeature> id2feature;
     std::unordered_map<IdType, LFOFeature> id2RlFeature;
     bool useRLCacheFeatures;
     bool useExponentialTimeGap;
+    ml_model model;
 
     uint64_t requestsSoFar;
+
+    const char * getTextForEnum( int enumVal )
+    {
+        return EnumStrings[enumVal];
+    }
+
 
     LFOFeature getRLFeature(SimpleRequest* r){
         auto it = id2RlFeature.find(r->getId());
@@ -98,6 +109,7 @@ public:
         requestsSoFar = 0;
         useRLCacheFeatures = false;
         useExponentialTimeGap = false;
+        model = LIGHT_GBM;
     }
     virtual ~Cache(){};
 
@@ -118,6 +130,13 @@ public:
     virtual void setUseRLCacheFeatures(bool useRLCache){
         useRLCacheFeatures = useRLCache;
         if(useRLCache) std::cout << "[+] Using RL Cache features" << std::endl;
+    }
+
+    virtual void setMLModel(ml_model _model){
+        model = _model;
+        char message[100];
+        sprintf(message, "[+] Using Model %s", getTextForEnum(_model));
+        std::cout << message << std::endl;
     }
 
     virtual void setUseExponentialTimeGap(bool expTimeGap){
@@ -206,8 +225,35 @@ public:
         id2RlFeature.clear();
     }
 
+    void train_model(std::vector<std::vector<double>> & features, std::vector<double> & labels) {
+        switch(model){
+            case LIGHT_GBM:
+                train_lightgbm(features,labels); break;
+            case RVM:
+                train_rvm(features, labels); break;
+            case SVM:
+                train_svm(features,labels); break;
+        }
+    }
+
+    void run_model(std::vector<double> feature) {
+        switch(model){
+            case LIGHT_GBM:
+                run_lightgbm(feature); break;
+            case RVM:
+                run_rvm(feature); break;
+            case SVM:
+                run_svm(feature); break;
+        }
+    }
+
     virtual void train_lightgbm(std::vector<std::vector<double>> & features, std::vector<double> & labels) {}
-//    virtual double run_lightgbm(std::vector<double> feature);
+    virtual void train_rvm(std::vector<std::vector<double>> & features, std::vector<double> & labels) {}
+    virtual void train_svm(std::vector<std::vector<double>> & features, std::vector<double> & labels) {}
+
+    virtual double run_lightgbm(std::vector<double> feature) {}
+    virtual double run_rvm(std::vector<double> feature) {}
+    virtual double run_svm(std::vector<double> feature) {}
     // _____________________________
 
 protected:
