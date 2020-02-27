@@ -11,6 +11,7 @@ using namespace std;
 
 uint64_t run_model(vector<SimpleRequest> & prev_requests,
                vector<vector<double>> & prev_features,
+               vector<dlib::matrix<double, 0, 1>> & prev_samples,
                unique_ptr<Cache> & webcache,
                ifstream & infile,
                size_t batch_size,
@@ -19,6 +20,10 @@ uint64_t run_model(vector<SimpleRequest> & prev_requests,
     uint64_t time, id, size;
     uint64_t counter = 0;
     uint64_t hit = 0;
+
+    bool useFeatures = true;
+
+    if(prev_samples.size() == batch_size) useFeatures = false;
 
     while (!infile.eof()) {
 
@@ -31,23 +36,42 @@ uint64_t run_model(vector<SimpleRequest> & prev_requests,
         SimpleRequest req(id, size, time);
         prev_requests[counter] = req;
 
-        vector<double> prev_feature = webcache->get_lfo_feature(&req).get_vector();
-        if (!prev_feature.empty()) {
-            prev_features[counter] = prev_feature;
-        }
+        if(useFeatures){
+            vector<double> prev_feature = webcache->get_lfo_feature(&req).get_vector();
+            if (!prev_feature.empty()) {
+                prev_features[counter] = prev_feature;
+            }
 
-        if (webcache->lookup(&req)) {
-            hit++;
-            outfile << id << ' ' << size << ' ' << '1' << ' ' << '1' << std::endl;
-        } else {
-            req.setFeatureVector(prev_feature);
-            webcache->admit(&req);
             if (webcache->lookup(&req)) {
-                outfile << id << ' ' << size << ' ' << '1' << ' ' << '0' << std::endl;
+                hit++;
+                outfile << id << ' ' << size << ' ' << '1' << ' ' << '1' << std::endl;
             } else {
-                outfile << id << ' ' << size << ' ' << '0' << ' ' << '0' << std::endl;
+                req.setFeatureVector(prev_feature);
+                webcache->admit(&req);
+                if (webcache->lookup(&req)) {
+                    outfile << id << ' ' << size << ' ' << '1' << ' ' << '0' << std::endl;
+                } else {
+                    outfile << id << ' ' << size << ' ' << '0' << ' ' << '0' << std::endl;
+                }
+            }
+        }else{
+            dlib::matrix<double, 0, 1> prev_sample = webcache->get_lfo_feature(&req).get_sample_type();
+            prev_samples[counter] = prev_sample;
+
+            if (webcache->lookup(&req)) {
+                hit++;
+                outfile << id << ' ' << size << ' ' << '1' << ' ' << '1' << std::endl;
+            } else {
+                req.setSampleType(prev_sample);
+                webcache->admit(&req);
+                if (webcache->lookup(&req)) {
+                    outfile << id << ' ' << size << ' ' << '1' << ' ' << '0' << std::endl;
+                } else {
+                    outfile << id << ' ' << size << ' ' << '0' << ' ' << '0' << std::endl;
+                }
             }
         }
+
         counter += 1;
     }
 
@@ -79,7 +103,14 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
     ifstream opt_infile;
 
     vector<SimpleRequest> prev_requests(batch_size);
-    vector<vector<double >> prev_features(batch_size);
+//    vector<vector<double >> prev_features(batch_size);
+
+    vector<vector<double >> prev_features;//(batch_size);
+    vector<dlib::matrix<double, 0, 1>> prev_samples;//(batch_size);
+
+    if(model == SVM || model == RVM) prev_samples.resize(batch_size);
+    if(model == LIGHT_GBM) prev_features.resize(batch_size);
+
 
     size_t iterations = 0;
 
@@ -91,7 +122,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
 
         cout << "Iteration: " << iterations << std::endl;
         webcache->reset();
-        uint64_t hits = run_model(prev_requests, prev_features, webcache, infile, batch_size, outfile);
+        uint64_t hits = run_model(prev_requests, prev_features, prev_samples, webcache, infile, batch_size, outfile);
 
         cout << "[+] Number of hits: " << hits << "\n";
 
@@ -99,7 +130,11 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
             return;
         }
 
-        if (prev_features.size() != 0 && prev_requests.size() != 0 && prev_features.size() == prev_requests.size()){
+        if (
+                (prev_features.size() != 0 && prev_requests.size() != 0 && prev_features.size() == prev_requests.size())
+                ||
+                (prev_samples.size() != 0 && prev_requests.size() != 0 && prev_samples.size() == prev_requests.size())
+                ){
 
 
             if (!changed_to_lfo) {
@@ -107,6 +142,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
                 webcache->setSize(cache_size);
                 webcache->setUseExponentialTimeGap(use_exponential_time_gap);
                 webcache->setUseRLCacheFeatures(use_rl_cache);
+                webcache->setMLModel(model);
                 changed_to_lfo = !changed_to_lfo;
             }
 
@@ -119,7 +155,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
                     optimal_decisions = getOptimalDecisions(prev_requests, webcache->getSize());
                 }
                 cout << "[+] Calling Train Light GBM at iteration " << iterations << endl;
-                webcache->train_model(prev_features, optimal_decisions);
+                webcache->train_model(prev_features, prev_samples, optimal_decisions);
             }
 //            prev_features.clear();
 //            prev_requests.clear();
@@ -132,7 +168,7 @@ void run_simulation(const string path, const string cacheType, const uint64_t ca
 
 void writeOptDecisions(const char* path, uint64_t batch_size, uint64_t cache_size, int metric){
     char fileName[100];
-    sprintf (fileName, "../opt_decisions_%d_%d_%ld", metric, batch_size, cache_size);
+    sprintf (fileName, "../opt_decisions_%d_%llu_%llu", metric, batch_size, cache_size);
     std::ofstream outfile;
     outfile.open(fileName);
 

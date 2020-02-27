@@ -51,6 +51,20 @@ struct LFOFeature {
 
     ~LFOFeature() {}
 
+    dlib::matrix<double, 0, 1>  get_sample_type() {
+        dlib::matrix<double, 0, 1>  sample;
+
+        auto feature = get_vector();
+
+        sample.set_size(feature.size());
+
+        for(auto j=0; j<feature.size(); j++){
+            sample(j) = feature.at(j);
+        }
+
+        return sample;
+    }
+
     std::vector<double> get_vector() {
         std::vector<double> features;
         features.push_back(size);

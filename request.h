@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <lib/dlib/dlib/matrix.h>
 
 typedef uint64_t IdType;
 
@@ -14,6 +15,7 @@ private:
     uint64_t _size; // request size in bytes
     uint64_t _timestamp; // request timestamp
     std::vector<double> _featureVector;//feature vector
+    dlib::matrix<double, 0, 1> _sample;
 
 public:
     SimpleRequest()
@@ -77,6 +79,14 @@ public:
 
     void setFeatureVector(const std::vector<double> &featureVector) {
         _featureVector = featureVector;
+    }
+
+    void setSampleType(dlib::matrix<double, 0, 1> &sampleType) {
+        _sample = sampleType;
+    }
+
+    const dlib::matrix<double, 0, 1> &getSampleType() const {
+        return _sample;
     }
 };
 

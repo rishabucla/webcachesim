@@ -9,6 +9,7 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
+#include <lib/dlib/dlib/matrix.h>
 #include "request.h"
 #include "lfo_features.h"
 
@@ -225,35 +226,36 @@ public:
         id2RlFeature.clear();
     }
 
-    void train_model(std::vector<std::vector<double>> & features, std::vector<double> & labels) {
+    void train_model(std::vector<std::vector<double>> & features, std::vector<dlib::matrix<double, 0, 1>> & samples, std::vector<double> & labels) {
         switch(model){
             case LIGHT_GBM:
-                train_lightgbm(features,labels); break;
+                train_lightgbm(features,samples, labels); break;
             case RVM:
-                train_rvm(features, labels); break;
+                train_rvm(features, samples, labels); break;
             case SVM:
-                train_svm(features,labels); break;
+                train_svm(features, samples, labels); break;
         }
     }
 
-    void run_model(std::vector<double> feature) {
+    double run_model(std::vector<double> feature,  dlib::matrix<double, 0, 1> sample) {
         switch(model){
             case LIGHT_GBM:
-                run_lightgbm(feature); break;
+                return run_lightgbm(feature, sample);
             case RVM:
-                run_rvm(feature); break;
+                return run_rvm(feature, sample);
             case SVM:
-                run_svm(feature); break;
+                return run_svm(feature, sample);
         }
+        return run_lightgbm(feature, sample);
     }
 
-    virtual void train_lightgbm(std::vector<std::vector<double>> & features, std::vector<double> & labels) {}
-    virtual void train_rvm(std::vector<std::vector<double>> & features, std::vector<double> & labels) {}
-    virtual void train_svm(std::vector<std::vector<double>> & features, std::vector<double> & labels) {}
+    virtual void train_lightgbm(std::vector<std::vector<double>> & features, std::vector<dlib::matrix<double, 0, 1>> & samples, std::vector<double> & labels) {}
+    virtual void train_rvm(std::vector<std::vector<double>> & features, std::vector<dlib::matrix<double, 0, 1>> & samples, std::vector<double> & labels) {}
+    virtual void train_svm(std::vector<std::vector<double>> & features, std::vector<dlib::matrix<double, 0, 1>> & samples, std::vector<double> & labels) {}
 
-    virtual double run_lightgbm(std::vector<double> feature) {}
-    virtual double run_rvm(std::vector<double> feature) {}
-    virtual double run_svm(std::vector<double> feature) {}
+    virtual double run_lightgbm(std::vector<double> feature, dlib::matrix<double, 0, 1> sample ) {}
+    virtual double run_rvm(std::vector<double> feature, dlib::matrix<double, 0, 1> sample) {}
+    virtual double run_svm(std::vector<double> feature, dlib::matrix<double, 0, 1> sample) {}
     // _____________________________
 
 protected:

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-double LFOCache::run_lightgbm(std::vector<double> feature) {
+double LFOCache::run_lightgbm(std::vector<double> feature,  dlib::matrix<double, 0, 1> sample) {
 
     if (boosterHandle == nullptr) {
         cout << "FUCK THIS UP." << endl;
@@ -38,7 +38,7 @@ double LFOCache::run_lightgbm(std::vector<double> feature) {
     return predictions;
 }
 
-void LFOCache::train_lightgbm(std::vector<std::vector<double>> & features, std::vector<double> & opt_decisions) {
+void LFOCache::train_lightgbm(std::vector<std::vector<double>> & features,  std::vector<dlib::matrix<double, 0, 1>> & samples, std::vector<double> & opt_decisions) {
 
     int freedBooster = LGBM_BoosterFree(boosterHandle);
     static int counter = 0;
@@ -118,12 +118,12 @@ void LFOCache::train_lightgbm(std::vector<std::vector<double>> & features, std::
     cout << "[+] Training of LightGBM completed" << std::endl;
 }
 
-double LFOCache::run_rvm(std::vector<double> feature) {
-    sample_type sample;
-
-    for(auto j=0; j<feature.size(); j++){
-        sample(j) = feature.at(j);
-    }
+double LFOCache::run_rvm(std::vector<double> feature,  dlib::matrix<double, 0, 1>  sample) {
+//    dlib::matrix<double, 0, 1> sample;
+//
+//    for(auto j=0; j<feature.size(); j++){
+//        sample(j) = feature.at(j);
+//    }
 
     return rvm_learned_function(sample);
 }
@@ -133,23 +133,23 @@ double LFOCache::run_rvm(std::vector<double> feature) {
  * @param features
  * @param labels
  */
-void LFOCache::train_rvm(std::vector<std::vector<double>> features, std::vector<double> labels) {
-    std::vector<sample_type> samples;
+void LFOCache::train_rvm(std::vector<std::vector<double>> & features,  std::vector<dlib::matrix<double, 0, 1>> & samples, std::vector<double> & labels) {
+//    std::vector<dlib::matrix<double, 0, 1>> samples;
+//
+//    for(auto i = 0; i < features.size(); i++){
+//        dlib::matrix<double, 0, 1> samp;
+//        samp.set_size(features.size());
+//
+//        auto feature = features.at(i);
+//
+//        for(auto j=0; j<feature.size(); j++){
+//            samp(j) = feature.at(j);
+//        }
+//
+//        samples.push_back(samp);
+//    }
 
-    for(auto i = 0; i < features.size(); i++){
-        sample_type samp;
-        samp.set_size(features.size());
-
-        auto feature = features.at(i);
-
-        for(auto j=0; j<feature.size(); j++){
-            samp(j) = feature.at(j);
-        }
-
-        samples.push_back(samp);
-    }
-
-    dlib::vector_normalizer<sample_type> normalizer;
+    dlib::vector_normalizer<dlib::matrix<double, 0, 1>> normalizer;
     // let the normalizer learn the mean and standard deviation of the samples
     normalizer.train(samples);
     // now normalize each sample
@@ -195,12 +195,12 @@ void LFOCache::train_rvm(std::vector<std::vector<double>> features, std::vector<
     rvm_learned_function.function = trainer.train(samples, labels); // perform the actual RVM training and save the results
 }
 
-double LFOCache::run_svm(std::vector<double> feature) {
-    sample_type sample;
-
-    for(auto j=0; j<feature.size(); j++){
-        sample(j) = feature.at(j);
-    }
+double LFOCache::run_svm(std::vector<double> feature,  dlib::matrix<double, 0, 1> sample) {
+//    dlib::matrix<double, 0, 1> sample;
+//
+//    for(auto j=0; j<feature.size(); j++){
+//        sample(j) = feature.at(j);
+//    }
 
     return svm_learned_function(sample);
 }
@@ -210,23 +210,23 @@ double LFOCache::run_svm(std::vector<double> feature) {
  * @param features
  * @param labels
  */
-void LFOCache::train_svm(std::vector<std::vector<double>> features, std::vector<double> labels) {
-    std::vector<sample_type> samples;
+void LFOCache::train_svm(std::vector<std::vector<double>> & features,  std::vector<dlib::matrix<double, 0, 1>> & samples, std::vector<double> & labels) {
+//    std::vector<dlib::matrix<double, 0, 1>> samples;
+//
+//    for(auto i = 0; i < features.size(); i++){
+//        dlib::matrix<double, 0, 1> samp;
+//        samp.set_size(features.size());
+//
+//        auto feature = features.at(i);
+//
+//        for(auto j=0; j<feature.size(); j++){
+//            samp(j) = feature.at(j);
+//        }
+//
+//        samples.push_back(samp);
+//    }
 
-    for(auto i = 0; i < features.size(); i++){
-        sample_type samp;
-        samp.set_size(features.size());
-
-        auto feature = features.at(i);
-
-        for(auto j=0; j<feature.size(); j++){
-            samp(j) = feature.at(j);
-        }
-
-        samples.push_back(samp);
-    }
-
-    dlib::vector_normalizer<sample_type> normalizer;
+    dlib::vector_normalizer<dlib::matrix<double, 0, 1>> normalizer;
     // let the normalizer learn the mean and standard deviation of the samples
     normalizer.train(samples);
     // now normalize each sample
@@ -294,7 +294,7 @@ bool LFOCache::lookup(SimpleRequest* req) {
 
 void LFOCache::admit(SimpleRequest* req) {
     const uint64_t size = req->getSize();
-    double dvar = run_lightgbm(req->getFeatureVector());
+    double dvar = run_model(req->getFeatureVector(), req->getSampleType());
     if (dvar >= threshold) {
         while (_currentSize + size > _cacheSize) {
             evict();

@@ -18,8 +18,7 @@
 
 typedef std::unordered_map<IdType, CacheObject> lfoCacheMapType;
 
-typedef dlib::matrix<double, 0, 1> sample_type;
-typedef dlib::radial_basis_kernel<sample_type> kernel_type;
+typedef dlib::radial_basis_kernel<dlib::matrix<double, 0, 1>> kernel_type;
 typedef dlib::decision_function<kernel_type> dec_funct_type;
 typedef dlib::normalized_function<dec_funct_type> funct_type;
 
@@ -56,14 +55,14 @@ protected:
     std::priority_queue<CacheObject, std::vector<CacheObject>, GreaterCacheObject> _cacheObjectMinpq;
 
 //    void update_timegaps(LFOFeature & feature, uint64_t new_time);
-    virtual void train_lightgbm(std::vector<std::vector<double>> & features, std::vector<double> & labels);
-    double run_lightgbm(std::vector<double> feature);
+    virtual void train_lightgbm(std::vector<std::vector<double>> & features, std::vector<dlib::matrix<double, 0, 1>> & samples, std::vector<double> & labels);
+    double run_lightgbm(std::vector<double> feature, dlib::matrix<double, 0, 1> sample);
 
-    void train_rvm(std::vector<std::vector<double>> features, std::vector<double> labels);
-    double run_rvm(std::vector<double> feature);
+    void train_rvm(std::vector<std::vector<double>> & features, std::vector<dlib::matrix<double, 0, 1>> & samples, std::vector<double> & labels);
+    double run_rvm(std::vector<double> feature, dlib::matrix<double, 0, 1> sample);
 
-    void train_svm(std::vector<std::vector<double>> features, std::vector<double> labels);
-    double run_svm(std::vector<double> feature);
+    void train_svm(std::vector<std::vector<double>> & features, std::vector<dlib::matrix<double, 0, 1>> & samples, std::vector<double> & labels);
+    double run_svm(std::vector<double> feature, dlib::matrix<double, 0, 1> sample);
 
 public:
     LFOCache(): Cache() {
