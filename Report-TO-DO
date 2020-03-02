@@ -1,0 +1,32 @@
+[x] feature importance from old data
+
+[x] OHR Global Horizontal plot 
+[x] BHR Global Horizontal plot
+
+[x] Starting cache algorithm - iteration wise - line plot
+
+        [x] BHR grouped by LRU
+        [x] OHR grouped by LRU
+
+        [x] BHR grouped by LFUDA
+        [x] OHR grouped by LFUDA
+
+        [x] BHR grouped by GDSF
+        [x] OHR grouped by GDSF
+
+        [x] BHR grouped by AdaptSize
+        [x] OHR grouped by AdaptSize
+
+[x] Feature type - iteration wise - line plot
+
+        [x] BHR grouped by Vanilla
+        [x] OHR grouped by Vanilla
+
+        [x] BHR grouped by RL-Cache
+        [x] OHR grouped by RL-Cache
+
+        [x] BHR grouped by RL-Cache Exponential Time Gaps
+        [x] OHR grouped by RL-Cache Exponential Time Gaps
+
+        [x] BHR grouped by Exponential Time Gaps
+        [x] OHR grouped by Exponential Time Gaps
